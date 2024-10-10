@@ -10,7 +10,7 @@
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: var(--font-mouse-memoirs);
+  font-family: var(--font-product-sans);
 
   scroll-behavior: smooth;
 }

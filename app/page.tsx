@@ -40,7 +40,7 @@ export default function Home() {
                 <h1 
                     data-aos="fade-up" 
                     data-aos-duration="1000" 
-                    className='text-5xl opacity-90 font-bold tracking-wide mt-[10px]'
+                    className='text-5xl font-bold tracking-wide mt-[10px]'
                 >
                     {loading ? 'Loading...' : currentValue} <span className='text-4xl'>aura</span>
                 </h1>
@@ -50,18 +50,18 @@ export default function Home() {
                     data-aos-delay="100" 
                     href='https://www.instagram.com/elvin_j_alapatt' 
                     target='_blank' 
-                    className='text-[21px] opacity-90 tracking-wide mt-[6px]'
+                    className='text-[18px] opacity-90 tracking-wide mt-[7px]'
                 >
                     @elvish_bai
                 </a>
             </div>
 
-            <div className="flex flex-col items-center justify-center py-[20px]">
+            <div className="flex flex-col items-center justify-center">
                 <Link 
                     href="/secret-key" 
-                    className="bg-transparent text-white underline underline-offset-4 px-4 py-2 rounded-full border-2 border-black"
+                    className="bg-white text-black flex items-center justify-center w-full h-[42px] font-bold"
                 >
-                    Is there any change?
+                    Update Aura
                 </Link>
             </div>
         </>

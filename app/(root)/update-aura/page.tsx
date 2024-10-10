@@ -30,8 +30,8 @@ const AuraUpdatePage = () => {
     }
 
     return (
-        <div className='flex flex-col max-w-[300px] mx-auto items-center justify-center h-screen gap-4'>
-            <h1 className='text-2xl'>melcow!</h1>
+        <div className='flex flex-col max-w-[300px] mx-auto items-center justify-center h-screen gap-8'>
+            <h1 data-aos="fade-up" data-aos-duration="1000" className='text-2xl text-center'>Hola, amigo mío!</h1>
             <NumberForm onLogout={handleLogout} />
         </div>
     );

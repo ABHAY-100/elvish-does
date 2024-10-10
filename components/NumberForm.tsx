@@ -40,8 +40,9 @@ export default function NumberForm({ onLogout }: NumberFormProps) { // Use the p
     };
 
     return (
-        <form onSubmit={handleSubmit} className='flex flex-col gap-4 w-full'>
+        <form onSubmit={handleSubmit} className='flex flex-col gap-6 w-full'>
             <select 
+                data-aos="fade-up" data-aos-duration="1000" data-aos-delay="100"
                 onChange={(e) => setOperation(e.target.value as 'add' | 'subtract')} 
                 className='border-b-2 text-center pb-[2px] border-white w-full bg-transparent text-white outline-none'
             >
@@ -50,12 +51,13 @@ export default function NumberForm({ onLogout }: NumberFormProps) { // Use the p
             </select>
             <input 
                 type="number" 
+                data-aos="fade-up" data-aos-duration="1000" data-aos-delay="200"
                 className='border-b-2 text-center pb-[2px] border-white w-full bg-transparent text-white outline-none'
                 onChange={(e) => setValue(Number(e.target.value))} 
-                placeholder='Enter a number'
+                placeholder='aura value here!'
                 required 
             />
-            <button type="submit">Submit</button>
+            <button data-aos="fade-up" data-aos-duration="1000" data-aos-delay="300" type="submit" className='bg-white text-black h-[40px] font-bold'>Submit</button>
         </form>
     );
 }

@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import AOSInit from '@/utils/AOSInit';
-import 'aos/dist/aos.css';
-import { AuthProvider } from '@/context/AuthContext';
+import AOSInit from "@/utils/AOSInit";
+import "aos/dist/aos.css";
+import { AuthProvider } from "@/context/AuthContext";
 
 const damnFont = localFont({
-  src: "./fonts/MouseMemoirs.ttf",
-  variable: "--font-mouse-memoirs",
+  src: "./fonts/Product Sans Regular.ttf",
+  variable: "--font-product-sans",
   weight: "400",
 });
 
@@ -24,13 +24,9 @@ export default function RootLayout({
   return (
     <AuthProvider>
       <html lang="en">
-      <AOSInit />
-      <body
-        className={`${damnFont.variable} antialiased`}
-      >
-        {children}
-      </body>
-    </html>
+        <AOSInit />
+        <body className={`${damnFont.variable} antialiased`}>{children}</body>
+      </html>
     </AuthProvider>
   );
 }
