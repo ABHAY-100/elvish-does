@@ -3,7 +3,12 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation'; // Import useRouter
 
-export default function NumberForm({ onLogout }) {
+// Define the props interface
+interface NumberFormProps {
+    onLogout: () => void; // Define the type for onLogout as a function that returns void
+}
+
+export default function NumberForm({ onLogout }: NumberFormProps) { // Use the props type
     const [operation, setOperation] = useState<'add' | 'subtract'>('add');
     const [value, setValue] = useState<number>(0);
     const router = useRouter(); // Initialize useRouter
@@ -27,12 +32,8 @@ export default function NumberForm({ onLogout }) {
             return; // Exit early
         }
 
-        // Parse the JSON response
-        // const data = await response.json();
-        // alert(`New Aura Value: ${data.newValue}`);
-
         // Reset authentication state after submission
-        onLogout(); 
+        onLogout();
 
         // Redirect to the main page after logout
         router.push('/'); // Redirect to main page
@@ -40,7 +41,10 @@ export default function NumberForm({ onLogout }) {
 
     return (
         <form onSubmit={handleSubmit} className='flex flex-col gap-4 w-full'>
-            <select onChange={(e) => setOperation(e.target.value as 'add' | 'subtract')} className='border-b-2 text-center pb-[2px] border-white w-full bg-transparent text-white outline-none'>
+            <select 
+                onChange={(e) => setOperation(e.target.value as 'add' | 'subtract')} 
+                className='border-b-2 text-center pb-[2px] border-white w-full bg-transparent text-white outline-none'
+            >
                 <option value="add" className='text-black'>Add</option>
                 <option value="subtract" className='text-black'>Subtract</option>
             </select>
