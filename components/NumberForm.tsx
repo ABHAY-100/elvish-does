@@ -28,7 +28,7 @@ export default function NumberForm({ onLogout }) {
         }
 
         // Parse the JSON response
-        const data = await response.json();
+        // const data = await response.json();
         // alert(`New Aura Value: ${data.newValue}`);
 
         // Reset authentication state after submission
