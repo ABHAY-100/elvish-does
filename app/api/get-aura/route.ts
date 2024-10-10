@@ -2,7 +2,7 @@ import clientPromise from '../../../lib/mongodb';
 
 export async function GET() {
     const client = await clientPromise;
-    const db = client.db('auraDatabase'); // Use your database name
+    const db = client.db('auraDatabase'); 
 
     const auraDoc = await db.collection('auraValues').findOne({});
     
