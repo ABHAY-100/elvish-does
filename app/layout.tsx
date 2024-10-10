@@ -1,20 +1,18 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import AOSInit from '@/utils/AOSInit';
+import 'aos/dist/aos.css';
+import { AuthProvider } from '@/context/AuthContext';
 
 const damnFont = localFont({
-  src: "./fonts/Satoshi-Variable.woff2",
-  variable: "--font-satoshi",
-  weight: "100 200 300 400 500 600 700 800 900",
-});
-const damnFontItalic = localFont({
-  src: "./fonts/Satoshi-VariableItalic.woff2",
-  variable: "--font-satoshi-italic",
-  weight: "100 200 300 400 500 600 700 800 900",
+  src: "./fonts/MouseMemoirs.ttf",
+  variable: "--font-mouse-memoirs",
+  weight: "400",
 });
 
 export const metadata: Metadata = {
-  title: "Elvish Aura",
+  title: "elvish has aura",
   description: "Just another Useless Project!",
 };
 
@@ -24,12 +22,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <AuthProvider>
+      <html lang="en">
+      <AOSInit />
       <body
-        className={`${damnFont.variable} ${damnFontItalic.variable} antialiased`}
+        className={`${damnFont.variable} antialiased`}
       >
         {children}
       </body>
     </html>
+    </AuthProvider>
   );
 }
