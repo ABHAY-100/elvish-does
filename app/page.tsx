@@ -1,17 +1,26 @@
-"use client"
+"use client";
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
 export default function Home() {
     const [currentValue, setCurrentValue] = useState<number | null>(null); // State to hold the current value
+    const [loading, setLoading] = useState<boolean>(true); // State to handle loading status
 
     const fetchCurrentValue = async () => {
-        const response = await fetch('/api/get-aura');
-        if (response.ok) {
-            const data = await response.json();
-            setCurrentValue(data.currentValue); // Update the state with the fetched value
-        } else {
-            console.error('Failed to fetch current value');
+        try {
+            const response = await fetch('/api/get-aura');
+            if (response.ok) {
+                const data = await response.json();
+                console.log('Fetched current value:', data.currentValue); // Log the fetched value
+                setCurrentValue(data.currentValue); // Update the state with the fetched value
+                setLoading(false); // Set loading to false after fetching the value
+            } else {
+                console.error('Failed to fetch current value');
+                setLoading(false); // Set loading to false even if there's an error
+            }
+        } catch (error) {
+            console.error('Error fetching current value:', error);
+            setLoading(false); // Set loading to false on error
         }
     };
 
@@ -28,8 +37,12 @@ export default function Home() {
     return (
         <>
             <div className='flex flex-col max-w-[300px] mx-auto items-center justify-center h-screen'>
-                <h1 data-aos="fade-up" data-aos-duration="1000" className='text-5xl opacity-90 font-bold tracking-wide mt-[10px]'>
-                    {currentValue} <span className='text-4xl'>aura</span>
+                <h1 
+                    data-aos="fade-up" 
+                    data-aos-duration="1000" 
+                    className='text-5xl opacity-90 font-bold tracking-wide mt-[10px]'
+                >
+                    {loading ? 'Loading...' : currentValue} <span className='text-4xl'>aura</span>
                 </h1>
                 <a 
                     data-aos="fade-up" 
@@ -54,3 +67,4 @@ export default function Home() {
         </>
     );
 }
+
