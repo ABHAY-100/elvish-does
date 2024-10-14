@@ -21,7 +21,7 @@ export async function GET() {
         return NextResponse.json(responseData, { 
             status: 200,
             headers: {
-                'Cache-Control': 'no-store, max-age=0, must-revalidate', // Ensure no caching
+                'Cache-Control': 'no-store, max-age=0, must-revalidate',
             },
         });
     } catch (error) {

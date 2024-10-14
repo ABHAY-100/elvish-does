@@ -9,7 +9,6 @@ export default function Home() {
 
   const fetchCurrentValue = async () => {
     try {
-      // Append a timestamp to the URL to bypass cache
       const response = await fetch(`/api/get-aura?timestamp=${new Date().getTime()}`, { cache: 'no-store' });
       if (response.ok) {
         const data = await response.json();
