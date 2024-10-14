@@ -8,9 +8,25 @@ export async function GET() {
 
         const auraDoc = await db.collection('auraValues').findOne({});
         
-        return NextResponse.json({ currentValue: auraDoc?.currentValue }, { status: 200 });
+        // Add timestamp and environment info
+        const responseData = {
+            currentValue: auraDoc?.currentValue,
+            timestamp: new Date().toISOString(),
+            environment: process.env.NODE_ENV,
+            databaseName: db.databaseName
+        };
+
+        console.log('API Response:', JSON.stringify(responseData));
+
+        return NextResponse.json(responseData, { 
+            status: 200,
+            headers: {
+                'Cache-Control': 'no-store, max-age=0',
+            },
+        });
     } catch (error) {
         console.error('Error fetching aura value:', error);
-        return NextResponse.json({ error: 'Failed to fetch aura value' }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        return NextResponse.json({ error: 'Failed to fetch aura value', details: errorMessage }, { status: 500 });
     }
 }
