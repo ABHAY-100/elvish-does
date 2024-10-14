@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import clientPromise from '../../../lib/mongodb';
+import clientPromise from '@/lib/mongodb';
 
 export async function GET() {
     try {
@@ -21,7 +21,7 @@ export async function GET() {
         return NextResponse.json(responseData, { 
             status: 200,
             headers: {
-                'Cache-Control': 'no-store, max-age=0',
+                'Cache-Control': 'no-store, max-age=0, must-revalidate', // Ensure no caching
             },
         });
     } catch (error) {

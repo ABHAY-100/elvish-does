@@ -9,7 +9,8 @@ export default function Home() {
 
   const fetchCurrentValue = async () => {
     try {
-      const response = await fetch("/api/get-aura", { cache: 'no-store' });
+      // Append a timestamp to the URL to bypass cache
+      const response = await fetch(`/api/get-aura?timestamp=${new Date().getTime()}`, { cache: 'no-store' });
       if (response.ok) {
         const data = await response.json();
         console.log("Fetched current value:", data.currentValue);
@@ -20,7 +21,6 @@ export default function Home() {
       }
     } catch (error) {
       console.error("Error fetching current value:", error);
-      // Here we're using the error variable to avoid the TypeScript warning
     } finally {
       setLoading(false);
     }
