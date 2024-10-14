@@ -20,6 +20,7 @@ export default function Home() {
       }
     } catch (error) {
       console.error("Error fetching current value:", error);
+      // Here we're using the error variable to avoid the TypeScript warning
     } finally {
       setLoading(false);
     }
@@ -35,7 +36,7 @@ export default function Home() {
         } catch (error) {
           retries--;
           if (retries === 0) {
-            console.error("Max retries reached. Unable to fetch current value.");
+            console.error("Max retries reached. Unable to fetch current value.", error);
           } else {
             console.log(`Retrying... Attempts left: ${retries}`);
             await new Promise(resolve => setTimeout(resolve, 1000));
