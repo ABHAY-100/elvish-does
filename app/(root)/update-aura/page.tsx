@@ -3,30 +3,29 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext'; // Ensure this path is correct
-import NumberForm from '../../../components/NumberForm'; // Adjust path as necessary
+import { useAuth } from '@/context/AuthContext';
+import NumberForm from '@/components/NumberForm';
 
 const AuraUpdatePage = () => {
     const router = useRouter();
     const { isAuthenticated, setIsAuthenticated } = useAuth();
-    const [loading, setLoading] = useState(true); // State to manage loading
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         if (!isAuthenticated) {
-            router.push('/'); // Redirect to secret key page if not authenticated
+            router.push('/');
         } else {
-            setLoading(false); // Set loading to false if authenticated
+            setLoading(false);
         }
     }, [isAuthenticated, router]);
 
     const handleLogout = () => {
-        setIsAuthenticated(false); // Reset authentication state
-        router.push('/'); // Redirect back to main page
+        setIsAuthenticated(false);
+        router.push('/');
     };
 
-    // Show nothing or a loading indicator while checking authentication
     if (loading) {
-        return null; // Alternatively, you can return a loading spinner or message here
+        return null;
     }
 
     return (

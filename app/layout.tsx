@@ -6,14 +6,14 @@ import "aos/dist/aos.css";
 import { AuthProvider } from "@/context/AuthContext";
 
 const damnFont = localFont({
-  src: "./fonts/Product Sans Regular.ttf",
+  src: "../assets/fonts/Product Sans Regular.ttf",
   variable: "--font-product-sans",
   weight: "400",
 });
 
 export const metadata: Metadata = {
-  title: "elvish has aura",
-  description: "Just another Useless Project!",
+  title: "elvish does",
+  description: "just another useless project!",
 };
 
 export default function RootLayout({
@@ -24,6 +24,9 @@ export default function RootLayout({
   return (
     <AuthProvider>
       <html lang="en">
+        <head>
+          <link rel="icon" href="/favicon.png" type="image/png" sizes="any" />
+        </head>
         <AOSInit />
         <body className={`${damnFont.variable} antialiased`}>{children}</body>
       </html>

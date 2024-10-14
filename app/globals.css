@@ -30,5 +30,5 @@ input[type=number]::-webkit-outer-spin-button {
 
 /* Hide the spinner controls in Firefox */
 input[type=number] {
-    -moz-appearance: textfield; /* Remove default styling */
+    -moz-appearance: textfield;
 }
