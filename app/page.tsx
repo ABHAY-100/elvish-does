@@ -9,28 +9,44 @@ export default function Home() {
 
   const fetchCurrentValue = async () => {
     try {
-      const response = await fetch("/api/get-aura");
+      const response = await fetch("/api/get-aura", { cache: 'no-store' });
       if (response.ok) {
         const data = await response.json();
         console.log("Fetched current value:", data.currentValue);
         setCurrentValue(data.currentValue);
-        setLoading(false);
       } else {
         console.error("Failed to fetch current value");
-        setLoading(false);
+        throw new Error('Failed to fetch');
       }
     } catch (error) {
       console.error("Error fetching current value:", error);
+    } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchCurrentValue();
+    const fetchWithRetry = async () => {
+      let retries = 3;
+      while (retries > 0) {
+        try {
+          await fetchCurrentValue();
+          break;
+        } catch (error) {
+          retries--;
+          if (retries === 0) {
+            console.error("Max retries reached. Unable to fetch current value.");
+          } else {
+            console.log(`Retrying... Attempts left: ${retries}`);
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+        }
+      }
+    };
 
-    const intervalId = setInterval(() => {
-      fetchCurrentValue();
-    }, 1000);
+    fetchWithRetry();
+
+    const intervalId = setInterval(fetchWithRetry, 5000);
 
     return () => clearInterval(intervalId);
   }, []);
