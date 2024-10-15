@@ -8,7 +8,6 @@ export async function GET() {
 
         const auraDoc = await db.collection('auraValues').findOne({});
         
-        // Add timestamp and environment info
         const responseData = {
             currentValue: auraDoc?.currentValue,
             timestamp: new Date().toISOString(),
