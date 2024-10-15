@@ -16,7 +16,7 @@ export default function NumberForm({ onLogout }: NumberFormProps) {
     e.preventDefault();
 
     const response = await fetch("/api/update-aura", {
-      method: "POST",
+      method: "PATCH",
       headers: {
         "Content-Type": "application/json",
       },
