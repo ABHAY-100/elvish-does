@@ -15,8 +15,6 @@ export async function GET() {
             databaseName: db.databaseName
         };
 
-        console.log('API Response:', JSON.stringify(responseData));
-
         return NextResponse.json(responseData, { 
             status: 200,
             headers: {

@@ -3,20 +3,36 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
+function formatNumber(num: number): string {
+  const absNum = Math.abs(num);
+  if (absNum >= 1e18) return (num / 1e18).toFixed(1) + "E";
+  if (absNum >= 1e15) return (num / 1e15).toFixed(1) + "P";
+  if (absNum >= 1e12) return (num / 1e12).toFixed(1) + "T";
+  if (absNum >= 1e9) return (num / 1e9).toFixed(1) + "G";
+  if (absNum >= 1e6) return (num / 1e6).toFixed(1) + "M";
+  if (absNum >= 1e3) return (num / 1e3).toFixed(1) + "k";
+  if (absNum >= 1e2) return (num / 1e2).toFixed(1) + "C";
+  if (absNum >= 1e1) return (num / 1e1).toFixed(1) + "D";
+  return num.toFixed(1);
+}
+
 export default function Home() {
   const [currentValue, setCurrentValue] = useState<number | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
   const fetchCurrentValue = async () => {
     try {
-      const response = await fetch(`/api/get-aura?timestamp=${new Date().getTime()}`, { cache: 'no-store' });
+      const response = await fetch(
+        `/api/get-aura?timestamp=${new Date().getTime()}`,
+        { cache: "no-store" }
+      );
       if (response.ok) {
         const data = await response.json();
         console.log("Fetched current value:", data.currentValue);
         setCurrentValue(data.currentValue);
       } else {
         console.error("Failed to fetch current value");
-        throw new Error('Failed to fetch');
+        throw new Error("Failed to fetch");
       }
     } catch (error) {
       console.error("Error fetching current value:", error);
@@ -35,10 +51,13 @@ export default function Home() {
         } catch (error) {
           retries--;
           if (retries === 0) {
-            console.error("Max retries reached. Unable to fetch current value.", error);
+            console.error(
+              "Max retries reached. Unable to fetch current value.",
+              error
+            );
           } else {
             console.log(`Retrying... Attempts left: ${retries}`);
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            await new Promise((resolve) => setTimeout(resolve, 1000));
           }
         }
       }
@@ -59,7 +78,7 @@ export default function Home() {
           data-aos-duration="1000"
           className="text-5xl font-bold tracking-wide mt-[10px]"
         >
-          {loading ? "..." : currentValue}{" "}
+          {loading ? "..." : formatNumber(currentValue || 0)}{" "}
           <span className="text-4xl">aura</span>
         </h1>
         <a
