@@ -5,6 +5,7 @@ import Link from "next/link";
 
 function formatNumber(num: number): string {
   const absNum = Math.abs(num);
+  if (absNum >= 1e19) return num > 0 ? "+∞" : "-∞";
   if (absNum >= 1e18) return (num / 1e18).toFixed(1) + "E";
   if (absNum >= 1e15) return (num / 1e15).toFixed(1) + "P";
   if (absNum >= 1e12) return (num / 1e12).toFixed(1) + "T";
