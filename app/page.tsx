@@ -21,55 +21,55 @@ export default function Home() {
   const [currentValue, setCurrentValue] = useState<number | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
-  const fetchCurrentValue = async () => {
-    try {
-      const response = await fetch(
-        `/api/get-aura?timestamp=${new Date().getTime()}`,
-        { cache: "no-store" }
-      );
-      if (response.ok) {
-        const data = await response.json();
-        console.log("Fetched current value:", data.currentValue);
-        setCurrentValue(data.currentValue);
-      } else {
-        console.error("Failed to fetch current value");
-        throw new Error("Failed to fetch");
-      }
-    } catch (error) {
-      console.error("Error fetching current value:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const eventSource = new EventSource('/api/get-aura?sse=true');
+
+    eventSource.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      setCurrentValue(data.currentValue);
+      setLoading(false);
+    };
+
+    eventSource.onerror = (error) => {
+      console.error('SSE Error:', error);
+      eventSource.close();
+      fallbackToPolling();
+    };
+
+    return () => {
+      eventSource.close();
+    };
+  }, []);
+
+  const fallbackToPolling = async () => {
     const fetchWithRetry = async () => {
       let retries = 3;
       while (retries > 0) {
         try {
-          await fetchCurrentValue();
-          break;
+          const response = await fetch(
+            `/api/get-aura?timestamp=${new Date().getTime()}`,
+            { cache: "no-store" }
+          );
+          if (response.ok) {
+            const data = await response.json();
+            setCurrentValue(data.currentValue);
+            setLoading(false);
+            break;
+          }
         } catch (error) {
+          console.error('Error fetching current value:', error);
           retries--;
-          if (retries === 0) {
-            console.error(
-              "Max retries reached. Unable to fetch current value.",
-              error
-            );
-          } else {
-            console.log(`Retrying... Attempts left: ${retries}`);
-            await new Promise((resolve) => setTimeout(resolve, 1000));
+          if (retries > 0) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
           }
         }
       }
     };
 
-    fetchWithRetry();
-
+    await fetchWithRetry();
     const intervalId = setInterval(fetchWithRetry, 5000);
-
     return () => clearInterval(intervalId);
-  }, []);
+  };
 
   return (
     <>
