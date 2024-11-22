@@ -10,7 +10,7 @@ export async function GET() {
         const db = client.db('auraDatabase');
 
         const auraDoc = await db.collection('auraValues').findOne({}, {
-            maxTimeMS: 5000 // 5 second timeout
+            maxTimeMS: 1000 // 1 second timeout
         });
         
         const responseData = {
