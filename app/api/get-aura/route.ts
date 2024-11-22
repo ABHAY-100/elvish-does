@@ -1,5 +1,10 @@
-import { NextResponse, Request } from 'next/server';
 import clientPromise from '@/lib/mongodb';
+import { ChangeStream, Document } from 'mongodb';
+
+interface AuraDocument {
+    currentValue: number;
+    timestamp?: string;
+}
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -25,9 +30,11 @@ export async function GET(req: Request) {
         // Watch for changes
         const client = await clientPromise;
         const db = client.db('auraDatabase');
-        const collection = db.collection('auraValues');
+        const collection = db.collection<AuraDocument>('auraValues');
         
-        const changeStream = collection.watch([], { fullDocument: 'updateLookup' });
+        const changeStream: ChangeStream<Document> = collection.watch([], { 
+            fullDocument: 'updateLookup'
+        });
         
         // Send initial value
         const initialDoc = await collection.findOne({});
@@ -40,14 +47,16 @@ export async function GET(req: Request) {
         writer.write(encoder.encode(`data: ${JSON.stringify(initialData)}\n\n`));
 
         // Listen for changes
-        changeStream.on('change', async (change) => {
-            const data = {
-                currentValue: change.fullDocument?.currentValue ?? 0,
-                timestamp: new Date().toISOString(),
-                environment: process.env.NODE_ENV,
-                databaseName: db.databaseName
-            };
-            writer.write(encoder.encode(`data: ${JSON.stringify(data)}\n\n`));
+        changeStream.on('change', async (change: Document) => {
+            if ('fullDocument' in change && change.fullDocument) {
+                const data = {
+                    currentValue: (change.fullDocument as AuraDocument).currentValue ?? 0,
+                    timestamp: new Date().toISOString(),
+                    environment: process.env.NODE_ENV,
+                    databaseName: db.databaseName
+                };
+                writer.write(encoder.encode(`data: ${JSON.stringify(data)}\n\n`));
+            }
         });
 
         return response;
@@ -57,9 +66,8 @@ export async function GET(req: Request) {
     try {
         const client = await clientPromise;
         const db = client.db('auraDatabase');
-        const auraDoc = await db.collection('auraValues').findOne({}, {
-            maxTimeMS: 1000 // 1 second timeout
-        });
+        const collection = db.collection<AuraDocument>('auraValues');
+        const auraDoc = await collection.findOne({});
         
         const responseData = {
             currentValue: auraDoc?.currentValue ?? 0,
@@ -68,7 +76,7 @@ export async function GET(req: Request) {
             databaseName: db.databaseName
         };
 
-        return new NextResponse(JSON.stringify(responseData), { 
+        return new Response(JSON.stringify(responseData), { 
             status: 200,
             headers: {
                 'Content-Type': 'application/json',
@@ -80,15 +88,14 @@ export async function GET(req: Request) {
         });
     } catch (error) {
         console.error('Error fetching aura value:', error);
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        return new NextResponse(JSON.stringify({
-            error: errorMessage,
+        return new Response(JSON.stringify({
+            error: error instanceof Error ? error.message : 'Unknown error',
             currentValue: null,
-            timestamp: new Date().toISOString(),
+            timestamp: new Date().toISOString()
         }), { 
             status: 500,
             headers: {
-                'Cache-Control': 'no-store, no-cache, must-revalidate',
+                'Cache-Control': 'no-store, no-cache, must-revalidate'
             }
         });
     }
