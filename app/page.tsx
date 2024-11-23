@@ -5,33 +5,58 @@ import Link from "next/link";
 
 function formatNumber(num: number): string {
   const absNum = Math.abs(num);
-  if (absNum >= 1e19) return num > 0 ? "+∞" : "-∞";
-  if (absNum >= 1e18) return (num / 1e18).toFixed(1) + "E";
-  if (absNum >= 1e15) return (num / 1e15).toFixed(1) + "P";
-  if (absNum >= 1e12) return (num / 1e12).toFixed(1) + "T";
-  if (absNum >= 1e9) return (num / 1e9).toFixed(1) + "G";
-  if (absNum >= 1e6) return (num / 1e6).toFixed(1) + "M";
-  if (absNum >= 1e3) return (num / 1e3).toFixed(1) + "k";
-  if (absNum >= 1e2) return (num / 1e2).toFixed(1) + "C";
-  if (absNum >= 1e1) return (num / 1e1).toFixed(1) + "D";
+  if (absNum >= 1e100) return num > 0 ? "+∞" : "-∞";
+  if (absNum >= 1e99) return (num / 1e99).toFixed(1) + " GoP";
+  if (absNum >= 1e98) return (num / 1e98).toFixed(1) + " GoO";
+  if (absNum >= 1e63) return (num / 1e63).toFixed(1) + " Y";
+  if (absNum >= 1e60) return (num / 1e60).toFixed(1) + " Z";
+  if (absNum >= 1e57) return (num / 1e57).toFixed(1) + " E";
+  if (absNum >= 1e54) return (num / 1e54).toFixed(1) + " P";
+  if (absNum >= 1e51) return (num / 1e51).toFixed(1) + " T";
+  if (absNum >= 1e48) return (num / 1e48).toFixed(1) + " G";
+  if (absNum >= 1e45) return (num / 1e45).toFixed(1) + " M";
+  if (absNum >= 1e42) return (num / 1e42).toFixed(1) + " k";
+  if (absNum >= 1e39) return (num / 1e39).toFixed(1) + " h";
+  if (absNum >= 1e36) return (num / 1e36).toFixed(1) + " da";
+  if (absNum >= 1e33) return (num / 1e33).toFixed(1) + " C";
+  if (absNum >= 1e30) return (num / 1e30).toFixed(1) + " m";
+  if (absNum >= 1e27) return (num / 1e27).toFixed(1) + " µ";
+  if (absNum >= 1e24) return (num / 1e24).toFixed(1) + " n";
+  if (absNum >= 1e21) return (num / 1e21).toFixed(1) + " p";
+  if (absNum >= 1e18) return (num / 1e18).toFixed(1) + " f";
+  if (absNum >= 1e15) return (num / 1e15).toFixed(1) + " a";
+  if (absNum >= 1e12) return (num / 1e12).toFixed(1) + " z";
+  if (absNum >= 1e9) return (num / 1e9).toFixed(1) + " y";
+  if (absNum >= 1e6) return (num / 1e6).toFixed(1) + " M";
+  if (absNum >= 1e3) return (num / 1e3).toFixed(1) + " k";
+  if (absNum >= 1e12) return (num / 1e12).toFixed(1) + " T";
+  if (absNum >= 1e9) return (num / 1e9).toFixed(1) + " G";
+  if (absNum >= 1e6) return (num / 1e6).toFixed(1) + " M";
   return num.toFixed(1);
 }
 
 export default function Home() {
   const [currentValue, setCurrentValue] = useState<number | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const eventSource = new EventSource('/api/get-aura?sse=true');
 
     eventSource.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      setCurrentValue(data.currentValue);
-      setLoading(false);
+      try {
+        const data = JSON.parse(event.data);
+        setCurrentValue(data.currentValue);
+        setLoading(false);
+        setError(null);
+      } catch (error) {
+        setError(error instanceof Error ? error.message : "Failed to process server data");
+        fallbackToPolling();
+      }
     };
 
-    eventSource.onerror = (error) => {
-      console.error('SSE Error:', error);
+    eventSource.onerror = () => {
+      setError("Connection lost. Retrying...");
       eventSource.close();
       fallbackToPolling();
     };
@@ -50,20 +75,24 @@ export default function Home() {
             `/api/get-aura?timestamp=${new Date().getTime()}`,
             { cache: "no-store" }
           );
-          if (response.ok) {
-            const data = await response.json();
-            setCurrentValue(data.currentValue);
-            setLoading(false);
-            break;
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
           }
+          const data = await response.json();
+          setCurrentValue(data.currentValue);
+          setLoading(false);
+          setError(null);
+          return true;
         } catch (error) {
-          console.error('Error fetching current value:', error);
           retries--;
-          if (retries > 0) {
+          if (retries === 0) {
+            setError(error instanceof Error ? error.message : "Failed to fetch data after multiple attempts");
+          } else {
             await new Promise(resolve => setTimeout(resolve, 1000));
           }
         }
       }
+      return false;
     };
 
     await fetchWithRetry();
@@ -82,6 +111,9 @@ export default function Home() {
           {loading ? "..." : formatNumber(currentValue || 0)}{" "}
           <span className="text-4xl">aura</span>
         </h1>
+        {error && (
+          <p className="text-red-500 text-sm mt-2">{error}</p>
+        )}
         <a
           data-aos="fade-up"
           data-aos-duration="1000"

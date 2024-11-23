@@ -18,6 +18,13 @@ export async function POST(req: Request) {
     const { operation, value }: { operation: string; value: number } =
       await req.json();
 
+    if (!operation || typeof value !== 'number') {
+      return NextResponse.json(
+        { success: false, message: "Invalid request parameters" },
+        { status: 400 }
+      );
+    }
+
     const client = await clientPromise;
     const db = client.db("auraDatabase");
 
@@ -53,20 +60,20 @@ export async function POST(req: Request) {
       } as unknown as PushOperator<AuraDocument>,
     };
 
-    console.log("Updating aura document:", {
-      currentValue: newValue,
-      operation,
-      value,
-      timestamp: new Date(),
-    });
-
     await db.collection("auraValues").updateOne({}, updateQuery);
 
-    return NextResponse.json({ success: true, newValue });
+    return NextResponse.json({ 
+      success: true, 
+      newValue,
+      timestamp: new Date().toISOString()
+    });
   } catch (error) {
-    console.error("Error updating aura:", error);
     return NextResponse.json(
-      { success: false, message: "Error updating aura" },
+      { 
+        success: false, 
+        message: error instanceof Error ? error.message : "Internal server error",
+        timestamp: new Date().toISOString()
+      },
       { status: 500 }
     );
   }
