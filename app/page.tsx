@@ -29,9 +29,6 @@ function formatNumber(num: number): string {
   if (absNum >= 1e9) return (num / 1e9).toFixed(1) + " y";
   if (absNum >= 1e6) return (num / 1e6).toFixed(1) + " M";
   if (absNum >= 1e3) return (num / 1e3).toFixed(1) + " k";
-  if (absNum >= 1e12) return (num / 1e12).toFixed(1) + " T";
-  if (absNum >= 1e9) return (num / 1e9).toFixed(1) + " G";
-  if (absNum >= 1e6) return (num / 1e6).toFixed(1) + " M";
   return num.toFixed(1);
 }
 
@@ -41,64 +38,93 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const eventSource = new EventSource('/api/get-aura?sse=true');
+    let eventSource: EventSource | null = null;
+    let retryTimeout: NodeJS.Timeout;
+    let mounted = true;
 
-    eventSource.onmessage = (event) => {
+    const fetchInitialData = async () => {
       try {
-        const data = JSON.parse(event.data);
-        setCurrentValue(data.currentValue);
-        setLoading(false);
-        setError(null);
-      } catch (error) {
-        setError(error instanceof Error ? error.message : "Failed to process server data");
-        fallbackToPolling();
-      }
-    };
-
-    eventSource.onerror = () => {
-      setError("Connection lost. Retrying...");
-      eventSource.close();
-      fallbackToPolling();
-    };
-
-    return () => {
-      eventSource.close();
-    };
-  }, []);
-
-  const fallbackToPolling = async () => {
-    const fetchWithRetry = async () => {
-      let retries = 3;
-      while (retries > 0) {
-        try {
-          const response = await fetch(
-            `/api/get-aura?timestamp=${new Date().getTime()}`,
-            { cache: "no-store" }
-          );
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+        const response = await fetch('/api/get-aura', {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
           }
-          const data = await response.json();
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        if (mounted) {
           setCurrentValue(data.currentValue);
           setLoading(false);
           setError(null);
           return true;
-        } catch (error) {
-          retries--;
-          if (retries === 0) {
-            setError(error instanceof Error ? error.message : "Failed to fetch data after multiple attempts");
-          } else {
-            await new Promise(resolve => setTimeout(resolve, 1000));
-          }
         }
+      } catch (error) {
+        if (mounted) {
+          setError(error instanceof Error ? error.message : "Failed to fetch data");
+          setLoading(false);
+        }
+        return false;
       }
-      return false;
     };
 
-    await fetchWithRetry();
-    const intervalId = setInterval(fetchWithRetry, 5000);
-    return () => clearInterval(intervalId);
-  };
+    const setupSSE = async () => {
+      if (!mounted) return;
+
+      try {
+        // First try to get initial data
+        const success = await fetchInitialData();
+        if (!success) return;
+
+        // Then set up SSE for updates
+        eventSource = new EventSource('/api/get-aura?sse=true');
+
+        eventSource.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            if (data.error) {
+              throw new Error(data.error);
+            }
+            if (mounted) {
+              setCurrentValue(data.currentValue);
+              setLoading(false);
+              setError(null);
+            }
+          } catch (error) {
+            if (mounted) {
+              setError(error instanceof Error ? error.message : "Failed to process data");
+              eventSource?.close();
+              retryTimeout = setTimeout(setupSSE, 2000);
+            }
+          }
+        };
+
+        eventSource.onerror = () => {
+          if (mounted) {
+            eventSource?.close();
+            retryTimeout = setTimeout(setupSSE, 2000);
+          }
+        };
+      } catch (error) {
+        if (mounted) {
+          setError(error instanceof Error ? error.message : "Connection error");
+          retryTimeout = setTimeout(setupSSE, 2000);
+        }
+      }
+    };
+
+    setupSSE();
+
+    return () => {
+      mounted = false;
+      eventSource?.close();
+      clearTimeout(retryTimeout);
+    };
+  }, []);
 
   return (
     <>
